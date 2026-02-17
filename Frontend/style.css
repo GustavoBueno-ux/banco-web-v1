@@ -1,0 +1,68 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    font-family: sans-serif;
+    background-color: lightgreen;
+}
+
+.voltar-btn {
+    font-size: 1em;
+    text-decoration: none;
+    color: white;
+    padding: 1em 1.5em;
+    width: 7em;
+    background-color: purple;
+    margin: .5em;
+    border-radius: 16px;
+}
+
+a {
+    font-size: 2em;
+    text-decoration: none;
+    color: white;
+    padding: .8em 0;
+    width: 7em;
+    background-color: purple;
+    margin: .5em;
+    border-radius: 16px;
+}
+
+div {
+    text-align: left;
+}
+
+p {
+    font-size: 1.3em;
+    margin-bottom: 0.1em;
+}
+
+input {
+    width: 18em;
+    height: 2.5em;
+    border-radius: 8px;
+    border: none;
+    padding: 0 .8em;
+}
+
+input:focus {
+    outline: none;
+    border: 2px solid darkred;
+    box-shadow: 0 0 6px rgba(139, 0, 0, 0.6);
+}
+
+button {
+    margin: 2em 0 1em 0;
+    font-size: 1em;
+    width: 10em;
+    padding: 1em 2.5em;
+    background-color: purple;
+    border-radius: 16px;
+    color: white;
+    border: none;
+}

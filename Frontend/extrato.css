@@ -1,0 +1,67 @@
+body {
+    font-family: Arial, sans-serif;
+    background: lightgreen;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+h2 {
+    text-align: center;
+    font-size: 3em;
+}
+
+#listaExtrato {
+    max-height: 70vh;
+    overflow-y: auto; /* scroll */
+    padding: 5px;
+}
+
+.extrato-item {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.extrato-tipo {
+    font-weight: bold;
+    font-size: 2em;
+}
+
+.extrato-valor {
+    font-size: 2em;
+    font-weight: 600;
+}
+
+.extrato-data {
+    font-size: 1.5em;
+    color: gray;
+}
+
+/* cores por tipo */
+.deposito { border-left: 5px solid green; }
+.saque { border-left: 5px solid red; }
+.transferencia { border-left: 5px solid blue; }
+
+a {
+    /*position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);*/
+    display: block;
+    
+
+    text-align: center;
+    font-size: 2em;
+    text-decoration: none;
+    color: white;
+    padding: .8em 0;
+    width: 7em;
+    background-color: purple;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    margin-top: 1em;
+    border-radius: 16px;
+}

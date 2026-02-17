@@ -12,130 +12,106 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ======================= FUNÇÕES AUXILIARES =======================
+// ======================= AUXILIARES FIREBASE =======================
+async function salvarUsuarioFirebase(usuario) {
+    await set(ref(db, `usuarios/${usuario.cpf}`), usuario);
+}
+
 async function carregarUsuariosFirebase() {
     const snapshot = await get(ref(db, "usuarios"));
     return snapshot.val() || {};
 }
 
-async function salvarUsuarioFirebase(cpf, usuario) {
-    await set(ref(db, `usuarios/${cpf}`), usuario);
-}
-
-// ======================= LOCAL STORAGE FUNÇÕES =======================
-
+// ======================= LOCAL STORAGE =======================
 export function mostrarSaldo() {
     let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
     let cpfLogado = localStorage.getItem("usuarioLogado");
     let usuario = usuarios.find(u => u.cpf === cpfLogado);
-    if (!usuario) return alert("Usuário não encontrado!");
+    if(!usuario) return alert("Usuário não encontrado!");
     document.getElementById("saldo").innerText = Number(usuario.saldo).toFixed(2);
-}
-
-export function mostrarExtrato() {
-    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-    let cpfLogado = localStorage.getItem("usuarioLogado");
-    let usuario = usuarios.find(u => u.cpf === cpfLogado);
-    let divExtrato = document.getElementById("listaExtrato");
-    if(!divExtrato) return;
-    divExtrato.innerHTML = "";
-    if(!usuario || !usuario.extrato || usuario.extrato.length===0) {
-        divExtrato.innerHTML="<p>Nenhuma operação realizada.</p>";
-        return;
-    }
-    usuario.extrato.slice().reverse().forEach(op=>{
-        let div=document.createElement("div");
-        div.classList.add("extrato-item");
-        if(op.tipo.includes("Depósito")) div.classList.add("deposito");
-        if(op.tipo.includes("Saque")) div.classList.add("saque");
-        if(op.tipo.includes("Transferência")) div.classList.add("transferencia");
-        div.innerHTML=`<div class="extrato-tipo">${op.tipo}</div>
-                       <div class="extrato-valor">R$ ${op.valor.toFixed(2)}</div>
-                       <div class="extrato-data">${op.data}</div>`;
-        divExtrato.appendChild(div);
-    });
 }
 
 export function Depositar() {
     let valor = parseFloat(document.getElementById("valorDeposito").value);
-    if(isNaN(valor)||valor<=0) return alert("Digite um valor válido!");
+    if(isNaN(valor)||valor<=0) return alert("Valor inválido!");
     let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
     let cpfLogado = localStorage.getItem("usuarioLogado");
-    let usuario = usuarios.find(u => u.cpf === cpfLogado);
-    usuario.saldo = Number(usuario.saldo) + valor;
-    if(!usuario.extrato) usuario.extrato = [];
-    usuario.extrato.push({ tipo:"Depósito", valor, data: new Date().toLocaleString() });
+    let usuario = usuarios.find(u=>u.cpf===cpfLogado);
+    usuario.saldo += valor;
+    if(!usuario.extrato) usuario.extrato=[];
+    usuario.extrato.push({tipo:"Depósito", valor, data:new Date().toLocaleString()});
     localStorage.setItem("usuarios", JSON.stringify(usuarios));
     mostrarSaldo();
-    mostrarExtrato();
 }
 
 export function Sacar() {
     let valor = parseFloat(document.getElementById("valorSaque").value);
     let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
     let cpfLogado = localStorage.getItem("usuarioLogado");
-    let usuario = usuarios.find(u => u.cpf === cpfLogado);
-    if(isNaN(valor) || valor<=0 || valor>usuario.saldo) return alert("Valor inválido ou saldo insuficiente!");
+    let usuario = usuarios.find(u=>u.cpf===cpfLogado);
+    if(isNaN(valor)||valor<=0||valor>usuario.saldo) return alert("Saldo insuficiente!");
     usuario.saldo -= valor;
     if(!usuario.extrato) usuario.extrato=[];
-    usuario.extrato.push({ tipo:"Saque", valor, data: new Date().toLocaleString() });
+    usuario.extrato.push({tipo:"Saque", valor, data:new Date().toLocaleString()});
     localStorage.setItem("usuarios", JSON.stringify(usuarios));
     mostrarSaldo();
-    mostrarExtrato();
 }
 
-// ======================= TRANSFERÊNCIA FIREBASE =======================
+// ======================= CRIAR CONTA =======================
+export async function CriarConta(nome, cpf, senha) {
+    cpf = cpf.replace(/\D/g, "");
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    if(usuarios.some(u=>u.cpf===cpf)) return alert("CPF já existe localmente!");
 
+    let usuario = { nome, cpf, senha, saldo:0, extrato:[] };
+    usuarios.push(usuario);
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    localStorage.setItem("usuarioLogado", cpf);
+
+    // salva no Firebase também
+    await salvarUsuarioFirebase(usuario);
+
+    alert("Conta criada com sucesso!");
+}
+
+// ======================= TRANSFERÊNCIA =======================
 export async function ConfirmarCpf() {
     let cpfDestino = document.getElementById("cpfDestino").value.trim();
     let cpfLogado = localStorage.getItem("usuarioLogado");
-    if(cpfLogado === cpfDestino) return alert("Não pode transferir para você mesmo!");
-    // verifica no Firebase
+    if(cpfDestino === cpfLogado) return alert("Não pode transferir para você mesmo!");
     const usuariosFirebase = await carregarUsuariosFirebase();
-    if(!usuariosFirebase[cpfDestino]) return alert("CPF não encontrado no sistema global!");
+    if(!usuariosFirebase[cpfDestino]) return alert("CPF destino não existe!");
     localStorage.setItem("cpfDestino", cpfDestino);
-    alert("CPF confirmado! Agora coloque o valor e clique em Transferir.");
+    alert("CPF confirmado! Agora insira o valor e clique Transferir.");
 }
 
 export async function Transferir() {
     let valor = parseFloat(document.getElementById("valorTransferencia").value);
     let cpfLogado = localStorage.getItem("usuarioLogado");
     let cpfDestino = localStorage.getItem("cpfDestino");
-    if(cpfLogado === cpfDestino) return alert("Não pode transferir para você mesmo!");
+    if(cpfDestino===cpfLogado) return alert("Não pode transferir para você mesmo!");
     if(isNaN(valor)||valor<=0) return alert("Valor inválido");
 
     // pega usuários locais
     let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-    let usuario = usuarios.find(u=>u.cpf===cpfLogado);
-    let destino = usuarios.find(u=>u.cpf===cpfDestino);
-    if(!usuario || !destino) return alert("Usuário não encontrado localmente");
-    if(valor > usuario.saldo) return alert("Saldo insuficiente!");
+    let uOrig = usuarios.find(u=>u.cpf===cpfLogado);
+    let uDest = usuarios.find(u=>u.cpf===cpfDestino);
+    if(!uOrig || !uDest) return alert("Usuário não encontrado localmente");
+    if(valor>uOrig.saldo) return alert("Saldo insuficiente!");
 
-    // atualiza saldo local
-    usuario.saldo -= valor;
-    destino.saldo += valor;
-    if(!usuario.extrato) usuario.extrato=[];
-    if(!destino.extrato) destino.extrato=[];
-    usuario.extrato.push({ tipo:"Transferência Enviada", valor, data: new Date().toLocaleString() });
-    destino.extrato.push({ tipo:"Transferência Recebida", valor, data: new Date().toLocaleString() });
+    uOrig.saldo -= valor;
+    uDest.saldo += valor;
+    if(!uOrig.extrato) uOrig.extrato=[];
+    if(!uDest.extrato) uDest.extrato=[];
+    uOrig.extrato.push({tipo:"Transferência Enviada", valor, data:new Date().toLocaleString()});
+    uDest.extrato.push({tipo:"Transferência Recebida", valor, data:new Date().toLocaleString()});
     localStorage.setItem("usuarios", JSON.stringify(usuarios));
 
-    // atualiza saldo no Firebase
-    await salvarUsuarioFirebase(cpfLogado, usuario);
-    await salvarUsuarioFirebase(cpfDestino, destino);
+    // salva no Firebase
+    await salvarUsuarioFirebase(uOrig);
+    await salvarUsuarioFirebase(uDest);
 
-    alert("Transferência realizada com sucesso!");
+    alert("Transferência realizada!");
     mostrarSaldo();
-    mostrarExtrato();
-}
-
-// ======================= CARREGAR DESTINO =======================
-export function carregarDestino() {
-    let cpfDestino = localStorage.getItem("cpfDestino");
-    if(!cpfDestino) return;
-    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-    let destino = usuarios.find(u=>u.cpf===cpfDestino);
-    if(destino && document.getElementById("nomeDestino"))
-        document.getElementById("nomeDestino").innerText = destino.nome;
 }
 

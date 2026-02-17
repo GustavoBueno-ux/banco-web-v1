@@ -216,5 +216,4 @@ function mostrarExtrato() {
 
 mostrarExtrato();
 
-
 mostrarSaldo();

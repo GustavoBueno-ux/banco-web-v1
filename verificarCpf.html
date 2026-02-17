@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="/Frontend/operacoes.css">
 </head>
 <body>
-    <h2> Seu saldo: R$ <span id="saldo"></span></h2>
-    <input type="number" id="valorSaque" placeholder="Digite o valor que deseja sacar">
-    <button onclick="Sacar()" class="sacar-btn">Sacar</button>
+    <p>Para quem você deseja transferir?</p>
+    <input type="text" id="cpfDestino" placeholder="Digite a chave (CPF) do destinatário">
+    <button onclick="ConfirmarCpf()">Continuar</button>
     <a href="conta.html">Voltar</a>
 
-    <script src="operacoes.js"></script>
+    <script src="/Frontend/operacoes.js"></script>
 </body>
 </html>

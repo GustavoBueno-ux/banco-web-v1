@@ -13,55 +13,129 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ======================= FUNÇÕES AUXILIARES =======================
-async function carregarTransferencias() {
-    const snapshot = await get(ref(db, "transferencias"));
+async function carregarUsuariosFirebase() {
+    const snapshot = await get(ref(db, "usuarios"));
     return snapshot.val() || {};
 }
 
-async function salvarTransferencias(transferencias) {
-    await set(ref(db, "transferencias"), transferencias);
+async function salvarUsuarioFirebase(cpf, usuario) {
+    await set(ref(db, `usuarios/${cpf}`), usuario);
 }
 
-// ======================= TRANSFERIR =======================
-export async function Transferir() {
-    const valor = parseFloat(document.getElementById("valorTransferencia").value);
-    const cpfLogado = localStorage.getItem("usuarioLogado");
-    const cpfDestino = document.getElementById("cpfDestino").value.trim();
+// ======================= LOCAL STORAGE FUNÇÕES =======================
 
-    if (cpfLogado === cpfDestino) return alert("Não pode transferir para você mesmo!");
-    if (isNaN(valor) || valor <= 0) return alert("Valor inválido");
-
-    // pega a lista de transferências mais recente
-    let transferencias = await carregarTransferencias();
-
-    // cria registro se não existir
-    if (!transferencias[cpfLogado]) transferencias[cpfLogado] = [];
-    if (!transferencias[cpfDestino]) transferencias[cpfDestino] = [];
-
-    // pega usuários locais (localStorage)
+export function mostrarSaldo() {
     let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let cpfLogado = localStorage.getItem("usuarioLogado");
     let usuario = usuarios.find(u => u.cpf === cpfLogado);
-    let destino = usuarios.find(u => u.cpf === cpfDestino);
+    if (!usuario) return alert("Usuário não encontrado!");
+    document.getElementById("saldo").innerText = Number(usuario.saldo).toFixed(2);
+}
 
-    if (!usuario || !destino) return alert("CPF destino não encontrado no seu sistema local");
+export function mostrarExtrato() {
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let cpfLogado = localStorage.getItem("usuarioLogado");
+    let usuario = usuarios.find(u => u.cpf === cpfLogado);
+    let divExtrato = document.getElementById("listaExtrato");
+    if(!divExtrato) return;
+    divExtrato.innerHTML = "";
+    if(!usuario || !usuario.extrato || usuario.extrato.length===0) {
+        divExtrato.innerHTML="<p>Nenhuma operação realizada.</p>";
+        return;
+    }
+    usuario.extrato.slice().reverse().forEach(op=>{
+        let div=document.createElement("div");
+        div.classList.add("extrato-item");
+        if(op.tipo.includes("Depósito")) div.classList.add("deposito");
+        if(op.tipo.includes("Saque")) div.classList.add("saque");
+        if(op.tipo.includes("Transferência")) div.classList.add("transferencia");
+        div.innerHTML=`<div class="extrato-tipo">${op.tipo}</div>
+                       <div class="extrato-valor">R$ ${op.valor.toFixed(2)}</div>
+                       <div class="extrato-data">${op.data}</div>`;
+        divExtrato.appendChild(div);
+    });
+}
 
-    if (valor > usuario.saldo) return alert("Saldo insuficiente!");
+export function Depositar() {
+    let valor = parseFloat(document.getElementById("valorDeposito").value);
+    if(isNaN(valor)||valor<=0) return alert("Digite um valor válido!");
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let cpfLogado = localStorage.getItem("usuarioLogado");
+    let usuario = usuarios.find(u => u.cpf === cpfLogado);
+    usuario.saldo = Number(usuario.saldo) + valor;
+    if(!usuario.extrato) usuario.extrato = [];
+    usuario.extrato.push({ tipo:"Depósito", valor, data: new Date().toLocaleString() });
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    mostrarSaldo();
+    mostrarExtrato();
+}
 
-    // atualiza saldos localmente
+export function Sacar() {
+    let valor = parseFloat(document.getElementById("valorSaque").value);
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let cpfLogado = localStorage.getItem("usuarioLogado");
+    let usuario = usuarios.find(u => u.cpf === cpfLogado);
+    if(isNaN(valor) || valor<=0 || valor>usuario.saldo) return alert("Valor inválido ou saldo insuficiente!");
+    usuario.saldo -= valor;
+    if(!usuario.extrato) usuario.extrato=[];
+    usuario.extrato.push({ tipo:"Saque", valor, data: new Date().toLocaleString() });
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    mostrarSaldo();
+    mostrarExtrato();
+}
+
+// ======================= TRANSFERÊNCIA FIREBASE =======================
+
+export async function ConfirmarCpf() {
+    let cpfDestino = document.getElementById("cpfDestino").value.trim();
+    let cpfLogado = localStorage.getItem("usuarioLogado");
+    if(cpfLogado === cpfDestino) return alert("Não pode transferir para você mesmo!");
+    // verifica no Firebase
+    const usuariosFirebase = await carregarUsuariosFirebase();
+    if(!usuariosFirebase[cpfDestino]) return alert("CPF não encontrado no sistema global!");
+    localStorage.setItem("cpfDestino", cpfDestino);
+    alert("CPF confirmado! Agora coloque o valor e clique em Transferir.");
+}
+
+export async function Transferir() {
+    let valor = parseFloat(document.getElementById("valorTransferencia").value);
+    let cpfLogado = localStorage.getItem("usuarioLogado");
+    let cpfDestino = localStorage.getItem("cpfDestino");
+    if(cpfLogado === cpfDestino) return alert("Não pode transferir para você mesmo!");
+    if(isNaN(valor)||valor<=0) return alert("Valor inválido");
+
+    // pega usuários locais
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let usuario = usuarios.find(u=>u.cpf===cpfLogado);
+    let destino = usuarios.find(u=>u.cpf===cpfDestino);
+    if(!usuario || !destino) return alert("Usuário não encontrado localmente");
+    if(valor > usuario.saldo) return alert("Saldo insuficiente!");
+
+    // atualiza saldo local
     usuario.saldo -= valor;
     destino.saldo += valor;
-
-    // salva localmente
+    if(!usuario.extrato) usuario.extrato=[];
+    if(!destino.extrato) destino.extrato=[];
+    usuario.extrato.push({ tipo:"Transferência Enviada", valor, data: new Date().toLocaleString() });
+    destino.extrato.push({ tipo:"Transferência Recebida", valor, data: new Date().toLocaleString() });
     localStorage.setItem("usuarios", JSON.stringify(usuarios));
 
-    // registra transferência no Firebase
-    const data = new Date().toLocaleString();
-    transferencias[cpfLogado].push({ tipo: "Enviado", valor, para: cpfDestino, data });
-    transferencias[cpfDestino].push({ tipo: "Recebido", valor, de: cpfLogado, data });
-
-    await salvarTransferencias(transferencias);
+    // atualiza saldo no Firebase
+    await salvarUsuarioFirebase(cpfLogado, usuario);
+    await salvarUsuarioFirebase(cpfDestino, destino);
 
     alert("Transferência realizada com sucesso!");
-    mostrarSaldo(); // sua função local pra atualizar saldo na tela
+    mostrarSaldo();
+    mostrarExtrato();
+}
+
+// ======================= CARREGAR DESTINO =======================
+export function carregarDestino() {
+    let cpfDestino = localStorage.getItem("cpfDestino");
+    if(!cpfDestino) return;
+    let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    let destino = usuarios.find(u=>u.cpf===cpfDestino);
+    if(destino && document.getElementById("nomeDestino"))
+        document.getElementById("nomeDestino").innerText = destino.nome;
 }
 

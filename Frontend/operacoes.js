@@ -81,7 +81,7 @@ function Sacar() {
     window.location.href = "conta.html";
 }
 
-function ConfirmarCpf() {
+/*function ConfirmarCpf() {
     let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
 
     let cpfDestino = document.getElementById("cpfDestino").value.trim();
@@ -105,7 +105,7 @@ function ConfirmarCpf() {
     // ir para próxima página
     window.location.href = "transferencia.html";
     mostrarSaldo();
-}
+}*/
 
 function carregarDestino() {
     if (!document.getElementById("nomeDestino")) return;

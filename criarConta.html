@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Web</title>
+    <title>Banco Web - Criar Conta</title>
     <link rel="stylesheet" href="/Frontend/style.css">
 </head>
 <body>
@@ -21,11 +21,29 @@
         <input type="password" id="senha">
     </div>
 
-    <button onclick="Criar()">Criar conta</button>
+    <button id="btnCriar">Criar conta</button>
     <a href="index.html" class="voltar-btn">Voltar</a>
 
-    <script src="/Frontend/criarEntrarConta.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
+
+        const btnCriar = document.getElementById("btnCriar");
+        btnCriar.addEventListener("click", () => {
+            const nome = document.getElementById("nome").value.trim();
+            const cpf = document.getElementById("cpf").value.trim();
+            const senha = document.getElementById("senha").value;
+
+            if (!nome || !cpf || !senha) {
+                return alert("Preencha todos os campos!");
+            }
+
+            if (senha.length < 4) {
+                return alert("Senha deve ter no mínimo 4 caracteres!");
+            }
+
+            Banco.CriarConta(nome, cpf, senha);
+        });
+    </script>
 
 </body>
 </html>

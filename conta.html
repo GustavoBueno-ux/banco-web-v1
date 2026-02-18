@@ -7,15 +7,24 @@
     <link rel="stylesheet" href="/Frontend/operacoes.css">
 </head>
 <body>
-    <h1>R$ <span id="saldo"></span></h1>
-    <a href="deposito.html">Depositar</a>
-    <a href="saque.html">Sacar</a>
-    <a href="verificarCpf.html">Transferir</a>
-    <a href="extrato.html">Extrato</a>
-    <a href="index.html">Voltar</a>
+    <h1>R$ <span id="saldo">0.00</span></h1>
 
-    <script src="/Frontend/conta.js"></script>
-    <script type="module" src="banco.js"></script>
+        <a href="deposito.html">Depositar</a>
+        <a href="saque.html">Sacar</a>
+        <a href="verificarCpf.html">Transferir</a>
+        <a href="extrato.html">Extrato</a>
+        <a href="index.html">Voltar</a>
 
+    <!-- Importa o módulo banco.js -->
+    <script type="module">
+        import * as Banco from './banco.js';
+
+        window.addEventListener('DOMContentLoaded', Banco.mostrarSaldo);
+
+        // Mostra saldo ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            Banco.mostrarSaldo();
+        });
+    </script>
 </body>
 </html>

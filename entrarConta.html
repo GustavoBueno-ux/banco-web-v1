@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Web</title>
+    <title>Banco Web - Login</title>
     <link rel="stylesheet" href="/Frontend/style.css">
 </head>
 <body>
@@ -16,11 +16,21 @@
         <input type="password" id="senha">
     </div>
 
-    <button onclick="Entrar()">Entrar</button>
+    <button id="btnEntrar">Entrar</button>
     <a href="index.html" class="voltar-btn">Voltar</a>
 
-    <script src="/Frontend/criarEntrarConta.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
 
+        const btnEntrar = document.getElementById("btnEntrar");
+        btnEntrar.addEventListener("click", () => {
+            const cpf = document.getElementById("cpf").value.trim();
+            const senha = document.getElementById("senha").value;
+
+            if (!cpf || !senha) return alert("Preencha todos os campos!");
+            Banco.Entrar(cpf, senha);
+            window.location.href = "conta.html";
+        });
+    </script>
 </body>
 </html>

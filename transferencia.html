@@ -1,21 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Web</title>
+    <title>Banco Web - Transferência</title>
     <link rel="stylesheet" href="/Frontend/operacoes.css">
 </head>
 <body>
-    <h3>Seu saldo: R$ <span id="saldo"></span></h3>
+    <h3>Seu saldo: R$ <span id="saldo">0.00</span></h3>
     <h2>Enviar para: <span id="nomeDestino"></span></h2>
 
     <input type="number" id="valorTransferencia" placeholder="Valor">
-    <button onclick="Transferir()">Transferir</button>
+    <button id="btnTransferir">Transferir</button>
     <a href="verificarCpf.html">Voltar</a>
 
-    <script src="/Frontend/operacoes.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
 
+        // Mostra saldo e nome do destino ao carregar
+        window.addEventListener('DOMContentLoaded', async () => {
+            Banco.mostrarSaldo();
+
+            const nomeSpan = document.getElementById("nomeDestino");
+            const cpfDestino = sessionStorage.getItem("cpfDestino");
+            if (!cpfDestino) return;
+
+            const todosUsuarios = await Banco.carregarTodosUsuariosFirebase();
+            const destino = Object.values(todosUsuarios).find(u => u.cpf === cpfDestino);
+            if (destino) nomeSpan.innerText = destino.nome;
+        });
+
+        // Evento do botão transferir
+        const btnTransferir = document.getElementById("btnTransferir");
+        btnTransferir.addEventListener("click", Banco.Transferir);
+    </script>
 </body>
 </html>

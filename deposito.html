@@ -3,17 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Web</title>
+    <title>Banco Web - Depósito</title>
     <link rel="stylesheet" href="/Frontend/operacoes.css">
 </head>
 <body>
-    <h2> Seu saldo: R$ <span id="saldo"></span></h2>
+    <h2>Seu saldo: R$ <span id="saldo">0.00</span></h2>
+
     <input type="number" id="valorDeposito" placeholder="Digite o valor que deseja depositar">
-    <button onclick="Depositar()">Depositar</button>
+    <button id="btnDepositar">Depositar</button>
     <a href="conta.html">Voltar</a>
 
-    <script src="/Frontend/operacoes.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
+
+        // Mostra saldo ao carregar
+        window.addEventListener('DOMContentLoaded', () => {
+            Banco.mostrarSaldo();
+        });
+
+        // Evento do botão depositar
+        const btnDepositar = document.getElementById("btnDepositar");
+        btnDepositar.addEventListener("click", Banco.Depositar);
+    </script>
 
 </body>
 </html>

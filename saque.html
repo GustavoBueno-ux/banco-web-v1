@@ -3,17 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Web</title>
+    <title>Banco Web - Saque</title>
     <link rel="stylesheet" href="/Frontend/operacoes.css">
 </head>
 <body>
-    <h2> Seu saldo: R$ <span id="saldo"></span></h2>
+    <h2>Seu saldo: R$ <span id="saldo">0.00</span></h2>
+
     <input type="number" id="valorSaque" placeholder="Digite o valor que deseja sacar">
-    <button onclick="Sacar()" class="sacar-btn">Sacar</button>
+    <button id="btnSacar" class="sacar-btn">Sacar</button>
     <a href="conta.html">Voltar</a>
 
-    <script src="/Frontend/operacoes.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
+
+        // Mostra saldo ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            Banco.mostrarSaldo();
+        });
+
+        // Evento do botão sacar
+        const btnSacar = document.getElementById("btnSacar");
+        btnSacar.addEventListener("click", Banco.Sacar);
+    </script>
 
 </body>
 </html>

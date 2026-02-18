@@ -2,21 +2,26 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Banco Web</title>
+    <title>Banco Web - Extrato</title>
     <link rel="stylesheet" href="/Frontend/extrato.css">
 </head>
 <body>
     <h2>Extrato da Conta</h2>
 
     <div id="listaExtrato">
-
+        <!-- Extrato será carregado aqui -->
     </div>
 
     <a href="conta.html">Voltar</a>
 
-    <script src="/Frontend/operacoes.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
 
+        // Carrega extrato ao abrir a página
+        window.addEventListener('DOMContentLoaded', () => {
+            Banco.mostrarExtrato();
+        });
+    </script>
 
 </body>
 </html>

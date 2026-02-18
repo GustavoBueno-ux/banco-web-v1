@@ -1,19 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banco Web</title>
+    <title>Banco Web - Transferência</title>
     <link rel="stylesheet" href="/Frontend/operacoes.css">
 </head>
 <body>
     <p>Para quem você deseja transferir?</p>
     <input type="text" id="cpfDestino" placeholder="Digite a chave (CPF) do destinatário">
-    <button onclick="ConfirmarCpf()">Continuar</button>
+    <button id="btnConfirmarCpf">Continuar</button>
     <a href="conta.html">Voltar</a>
 
-    <script src="/Frontend/operacoes.js"></script>
-    <script type="module" src="banco.js"></script>
+    <script type="module">
+        import * as Banco from './banco.js';
 
+        const btnConfirmarCpf = document.getElementById("btnConfirmarCpf");
+        btnConfirmarCpf.addEventListener("click", async () => {
+            const cpfDestino = document.getElementById("cpfDestino").value.trim();
+            if (!cpfDestino) return alert("Digite um CPF válido!");
+
+            // Salva o CPF destino temporariamente na sessionStorage
+            sessionStorage.setItem("cpfDestino", cpfDestino);
+
+            // Chama função do módulo para validar o CPF no Firebase
+            const valido = await Banco.ConfirmarCpf(cpfDestino);
+            if (valido) {
+                // Redireciona para a página de transferência
+                window.location.href = "transferencia.html";
+            }
+        });
+    </script>
 </body>
 </html>
